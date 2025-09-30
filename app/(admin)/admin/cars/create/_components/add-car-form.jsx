@@ -137,17 +137,24 @@ export const AddCarForm = () => {
     if (processImageResult?.success) {
       const carDetails = processImageResult.data;
 
+      // Helper function to extract numbers from strings
+      const extractNumber = (value) => {
+        if (!value) return "";
+        const numStr = value.toString().replace(/[^0-9.]/g, "");
+        return numStr || "";
+      };
+
       // Update form with AI results
-      setValue("make", carDetails.make);
-      setValue("model", carDetails.model);
-      setValue("year", carDetails.year.toString());
-      setValue("color", carDetails.color);
-      setValue("bodyType", carDetails.bodyType);
-      setValue("fuelType", carDetails.fuelType);
-      setValue("price", carDetails.price);
-      setValue("mileage", carDetails.mileage);
-      setValue("transmission", carDetails.transmission);
-      setValue("description", carDetails.description);
+      setValue("make", carDetails.make || "");
+      setValue("model", carDetails.model || "");
+      setValue("year", carDetails.year ? carDetails.year.toString() : "");
+      setValue("color", carDetails.color || "");
+      setValue("bodyType", carDetails.bodyType || "");
+      setValue("fuelType", carDetails.fuelType || "");
+      setValue("price", extractNumber(carDetails.price));
+      setValue("mileage", extractNumber(carDetails.mileage));
+      setValue("transmission", carDetails.transmission || "");
+      setValue("description", carDetails.description || "");
 
       // Add the image to the uploaded images
       const reader = new FileReader();
@@ -273,13 +280,36 @@ export const AddCarForm = () => {
       return;
     }
 
-    // Prepare data for server action
+    // Prepare data for server action with proper validation
+    const year = parseInt(data.year);
+    const price = parseFloat(data.price);
+    const mileage = parseInt(data.mileage);
+    const seats = data.seats ? parseInt(data.seats) : null;
+
+    // Validate parsed numbers
+    if (isNaN(year)) {
+      toast.error("Please enter a valid year");
+      return;
+    }
+    if (isNaN(price)) {
+      toast.error("Please enter a valid price");
+      return;
+    }
+    if (isNaN(mileage)) {
+      toast.error("Please enter a valid mileage");
+      return;
+    }
+    if (data.seats && isNaN(seats)) {
+      toast.error("Please enter a valid number of seats");
+      return;
+    }
+
     const carData = {
       ...data,
-      year: parseInt(data.year),
-      price: parseFloat(data.price),
-      mileage: parseInt(data.mileage),
-      seats: data.seats ? parseInt(data.seats) : null,
+      year,
+      price,
+      mileage,
+      seats,
     };
 
     // Call the addCar function with our useFetch hook

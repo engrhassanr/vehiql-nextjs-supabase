@@ -38,12 +38,13 @@ NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
 NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
 
 # Supabase
-NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your_anon_key_here"
 SUPABASE_SERVICE_ROLE_KEY="your_service_role_key_here"
 
 # Google Gemini AI
 GEMINI_API_KEY="your_gemini_api_key_here"
+GEMINI_MODEL="gemini-2.0-flash-exp"
 
 # Arcjet Security
 ARCJET_KEY="your_arcjet_key_here"
@@ -78,13 +79,37 @@ npx prisma generate
 npx prisma db push
 ```
 
-5. **Run the development server**
+5. **Set up Supabase Storage**
+
+Run the SQL script in Supabase SQL Editor:
+
+- Script location: `scripts/fix-supabase-storage.sql`
+- See `SETUP_COMPLETE.md` for detailed instructions
+
+6. **Run the development server**
 
 ```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Storage Structure
+
+**Super simple:** One bucket, one folder!
+
+```
+car-images/
+└── cars/
+    ├── {car-id}/          ← Car listing images (in subfolders)
+    │   └── image-*.webp
+    └── ai-search-*.jpeg   ← AI search images (root level with prefix)
+```
+
+- **Car listings:** `cars/{car-id}/image-*.webp` (organized by car ID)
+- **AI search:** `cars/ai-search-*.jpeg` (temporary, prefix for easy cleanup)
+
+Run `npm run cleanup:search-images` to delete old AI search images (7+ days).
 
 ## Learn More
 

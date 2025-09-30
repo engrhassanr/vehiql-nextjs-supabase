@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { db } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase-admin";
 import aj from "@/lib/arcjet";
 import { request } from "@arcjet/next";
 
@@ -90,26 +91,25 @@ export async function processImageSearch(file) {
     // Upload the same image to Supabase bucket for later lookup/search
     let uploadedImageUrl = null;
     try {
-      const cookieStore = await cookies();
-      const supabase = createClient(cookieStore);
+      const supabase = createAdminClient();
 
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
       const extension = file.type?.split("/")[1] || "jpeg";
-      const fileName = `image-${Date.now()}.${extension}`;
-      const filePath = `search/${fileName}`;
+      const fileName = `ai-search-${Date.now()}.${extension}`;
+      const filePath = `cars/${fileName}`;
 
-      // Ensure a bucket named "search-images" exists in your Supabase project
+      // Upload to car-images/cars/ folder (same location as car images)
       const { error: uploadError } = await supabase.storage
-        .from("search-images")
+        .from("car-images")
         .upload(filePath, buffer, {
           contentType: file.type || `image/${extension}`,
           upsert: false,
         });
 
       if (!uploadError) {
-        uploadedImageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/search-images/${filePath}`;
+        uploadedImageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/car-images/${filePath}`;
       } else {
         console.warn("Supabase upload failed:", uploadError.message);
       }
@@ -128,20 +128,20 @@ export async function processImageSearch(file) {
     // Define the prompt for car search extraction
     const prompt = `
       Analyze this car image and extract the following information for a search query:
-      1. Make (manufacturer)
-      2. Body type (SUV, Sedan, Hatchback, etc.)
-      3. Color
+      1. Make (manufacturer) - be as specific as possible
+      2. Body type (SUV, Sedan, Hatchback, Convertible, Coupe, Wagon, or Pickup)
+      3. Color - the main visible color
 
-      Format your response as a clean JSON object with these fields:
+      Format your response as a clean JSON object with these exact fields:
       {
-        "make": "",
-        "bodyType": "",
-        "color": "",
-        "confidence": 0.0
+        "make": "string",
+        "bodyType": "SUV",
+        "color": "string",
+        "confidence": 0.85
       }
 
       For confidence, provide a value between 0 and 1 representing how confident you are in your overall identification.
-      Only respond with the JSON object, nothing else.
+      Only respond with the JSON object, nothing else. No markdown formatting, no extra text.
     `;
 
     // Get response from Gemini

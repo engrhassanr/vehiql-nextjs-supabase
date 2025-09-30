@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { auth } from "@clerk/nextjs/server";
 import { serializeCarData } from "@/lib/helpers";
 
@@ -45,32 +46,39 @@ export async function processCarImageWithAI(file) {
       Analyze this car image and extract the following information:
       1. Make (manufacturer)
       2. Model
-      3. Year (approximately)
+      3. Year (approximately, if not visible estimate based on design)
       4. Color
-      5. Body type (SUV, Sedan, Hatchback, etc.)
-      6. Mileage
-      7. Fuel type (your best guess)
-      8. Transmission type (your best guess)
-      9. Price (your best guess)
-      9. Short Description as to be added to a car listing
+      5. Body type (SUV, Sedan, Hatchback, Convertible, Coupe, Wagon, or Pickup)
+      6. Estimated mileage (numeric value only, no units)
+      7. Fuel type (Petrol, Diesel, Electric, Hybrid, or Plug-in Hybrid)
+      8. Transmission type (Automatic, Manual, or Semi-Automatic)
+      9. Estimated price in USD (numeric value only, no currency symbols)
+      10. Short Description (2-3 sentences for a car listing)
 
-      Format your response as a clean JSON object with these fields:
+      IMPORTANT RULES:
+      - For "price": provide ONLY the numeric value (e.g., 45000, not "$45,000" or "45000 USD")
+      - For "mileage": provide ONLY the numeric value (e.g., 25000, not "25,000 km" or "25k miles")
+      - For "year": provide ONLY the 4-digit year (e.g., 2023)
+      - If you cannot determine exact values, provide reasonable estimates based on the car's appearance
+      - Make sure all numeric fields contain ONLY numbers
+
+      Format your response as a clean JSON object with these exact fields:
       {
-        "make": "",
-        "model": "",
-        "year": 0000,
-        "color": "",
-        "price": "",
-        "mileage": "",
-        "bodyType": "",
-        "fuelType": "",
-        "transmission": "",
-        "description": "",
-        "confidence": 0.0
+        "make": "string",
+        "model": "string",
+        "year": 2023,
+        "color": "string",
+        "price": "45000",
+        "mileage": "25000",
+        "bodyType": "SUV",
+        "fuelType": "Petrol",
+        "transmission": "Automatic",
+        "description": "string",
+        "confidence": 0.85
       }
 
       For confidence, provide a value between 0 and 1 representing how confident you are in your overall identification.
-      Only respond with the JSON object, nothing else.
+      Only respond with the JSON object, nothing else. No markdown formatting, no extra text.
     `;
 
     // Get response from Gemini
@@ -143,9 +151,8 @@ export async function addCar({ carData, images }) {
     const carId = uuidv4();
     const folderPath = `cars/${carId}`;
 
-    // Initialize Supabase client for server-side operations
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    // Initialize Supabase admin client for server-side operations (bypasses RLS)
+    const supabase = createAdminClient();
 
     // Upload all images to Supabase storage
     const imageUrls = [];
@@ -287,8 +294,7 @@ export async function deleteCar(id) {
 
     // Delete the images from Supabase storage
     try {
-      const cookieStore = cookies();
-      const supabase = createClient(cookieStore);
+      const supabase = createAdminClient();
 
       // Extract file paths from image URLs
       const filePaths = car.images
