@@ -1,24 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Vehiql - AI-Powered Car Marketplace
+
+A modern car marketplace platform built with Next.js, Supabase, and Clerk authentication. Vehiql allows users to browse, search, and book test drives for vehicles with an integrated EMI calculator and AI-powered search functionality.
+
+## Features
+
+- 🚗 Browse and search cars with advanced filters
+- 🔍 AI-powered car search using Google Gemini
+- 📅 Book test drives with dealerships
+- 💰 EMI calculator with real-time calculations
+- ❤️ Save favorite cars
+- 🔐 Secure authentication with Clerk
+- 📊 Admin dashboard for managing cars and test drives
+- 🎨 Modern, responsive UI with Tailwind CSS and shadcn/ui
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, React, Tailwind CSS
+- **UI Components**: shadcn/ui
+- **Database**: PostgreSQL with Prisma ORM
+- **Storage**: Supabase Storage
+- **Authentication**: Clerk
+- **AI**: Google Gemini API
+- **Security**: Arcjet
+
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# Database
+DATABASE_URL="postgresql://username:password@host:port/database"
+
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_your_key_here"
+CLERK_SECRET_KEY="sk_test_your_key_here"
+NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
+NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your_anon_key_here"
+SUPABASE_SERVICE_ROLE_KEY="your_service_role_key_here"
+
+# Google Gemini AI
+GEMINI_API_KEY="your_gemini_api_key_here"
+
+# Arcjet Security
+ARCJET_KEY="your_arcjet_key_here"
+
+# App URL
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+```
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/engrhassanr/vehiql-nextjs-supabase.git
+cd vehiql
+```
+
+2. **Install dependencies**
+
+```bash
+npm install
+```
+
+3. **Set up environment variables**
+
+Copy `.env.example` to `.env` and fill in your API keys and credentials.
+
+4. **Set up the database**
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+5. **Run the development server**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
 
